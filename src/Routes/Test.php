@@ -15,7 +15,15 @@ class Test extends \Tualo\Office\Basic\RouteWrapper
             App::contenttype('application/json');
 
             try {
-                $to = App::configuration('msgraph-mail', 'testmail', '');
+                if (!API::has('testMailToAddress')) {
+                    throw new \RuntimeException('Testmail address is not configured.');
+                }
+                if (!API::has('mailFromAddress')) {
+                    throw new \RuntimeException('Mail from address is not configured.');
+                }
+
+
+                $to = API::env('testMailToAddress');
                 if (empty($to)) {
                     throw new \RuntimeException('Testmail address is not configured.');
                 }

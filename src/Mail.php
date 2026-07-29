@@ -70,6 +70,11 @@ class Mail
         try {
             $graphClient = API::GraphClient();
 
+            if (!API::has('mailFromAddress')) {
+                throw new \RuntimeException('Mail from address is not configured.');
+            }
+
+            
             $requestBody = new SendMailPostRequestBody();
             $message = new Message();
             $message->setSubject($subject);
@@ -78,7 +83,7 @@ class Mail
                 (new Recipient())
                     ->setEmailAddress(
                         (new EmailAddress())
-                            ->setAddress('Noreply-datencheck@muenchen.ihk.de')
+                            ->setAddress(API::env('mailFromAddress'))
                     )
             );
 
