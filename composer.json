@@ -1,0 +1,27 @@
+{
+  "name": "tualo/msgraph-mail",
+  "description": "tualo - msgraph mail integration",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Thomas Hoffmann",
+      "email": "thomas.hoffmann@tualo.de"
+    }
+  ],
+  "autoload": {
+    "psr-4": {
+      "Tualo\\Office\\MSGraphMail\\": "src/"
+    },
+    "files": [
+      "src/functions.php"
+    ]
+  },
+  "minimum-stability": "dev",
+  "require": {
+    "tualo/msgraph": "^1.1"
+  },
+  "version": "1.0.01"
+}
+
+
