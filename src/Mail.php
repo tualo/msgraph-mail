@@ -34,11 +34,38 @@ class Mail
 {
     private static $config = [];
 
-        public static function getInbox(): MessageCollectionResponse
+    private static function getMailboxUser(): ?string
+    {
+        if (API::has('defaultUserId')) {
+            return API::env('defaultUserId');
+        }
+
+        if (API::has('mailFromAddress')) {
+            return API::env('mailFromAddress');
+        }
+
+        return null;
+    }
+
+    public static function getInbox(): MessageCollectionResponse
     {
         $graphClient = API::GraphClient();
 
         if (API::has('clientSecret')) {
+            $mailboxUser = self::getMailboxUser();
+            if ($mailboxUser !== null) {
+                $configuration = new MessagesRequestBuilderGetRequestConfiguration();
+                $configuration->queryParameters = new MessagesRequestBuilderGetQueryParameters();
+                $configuration->queryParameters->select = ['from', 'isRead', 'receivedDateTime', 'subject'];
+                $configuration->queryParameters->orderby = ['receivedDateTime DESC'];
+                $configuration->queryParameters->top = 25;
+                return $graphClient->users()
+                    ->byUserId($mailboxUser)
+                    ->mailFolders()
+                    ->byMailFolderId('inbox')
+                    ->messages()
+                    ->get($configuration)->wait();
+            }
             return null;
         }
         
@@ -143,13 +170,19 @@ class Mail
             }
 
             $requestBody->setMessage($message);
-            $graphClient->me()->sendMail()->post($requestBody)->wait();
+
+            $mailboxUser = self::getMailboxUser();
+            if ($mailboxUser !== null) {
+                $graphClient->users()->byUserId($mailboxUser)->sendMail()->post($requestBody)->wait();
+            } else {
+                $graphClient->me()->sendMail()->post($requestBody)->wait();
+            }
         } catch (ODataError $e) {
             echo $e->getError()->getMessage();
             throw new \Exception($e->getError()->getMessage());
         } catch (ApiException $ex) {
             echo $ex->getMessage();
-        } catch (Exception $ex) {
+        } catch (\Exception $ex) {
             echo $ex->getMessage();
         }
     }
